@@ -2,6 +2,11 @@
 *.out
 *.cmp
 
+# C Compiler outputs
+*.exe
+*.o
+*.obj
+
 # System junk
 Thumbs.db
 .DS_Store
