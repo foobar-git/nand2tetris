@@ -1,0 +1,7 @@
+# Nand2Tetris specific
+*.out
+*.cmp
+
+# System junk
+Thumbs.db
+.DS_Store
