@@ -1,0 +1,89 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+/**
+ * The Hack Central Processing unit (CPU).
+ * Parses the binary code in the instruction input and executes it according to the
+ * Hack machine language specification. In the case of a C-instruction, computes the
+ * function specified by the instruction. If the instruction specifies to read a memory
+ * value, the inM input is expected to contain this value. If the instruction specifies
+ * to write a value to the memory, sets the outM output to this value, sets the addressM
+ * output to the target address, and asserts the writeM output (when writeM = 0, any
+ * value may appear in outM).
+ * If the reset input is 0, computes the address of the next instruction and sets the
+ * pc output to that value. If the reset input is 1, sets pc to 0.
+ * Note: The outM and writeM outputs are combinational: they are affected by the
+ * instruction's execution during the current cycle. The addressM and pc outputs are
+ * clocked: although they are affected by the instruction's execution, they commit to
+ * their new values only in the next cycle.
+ */
+CHIP CPU {
+
+    IN  inM[16],         // M value input  (M = contents of RAM[A])
+        instruction[16], // Instruction for execution
+        reset;           // Signals whether to re-start the current
+                         // program (reset==1) or continue executing
+                         // the current program (reset==0).
+
+    OUT outM[16],        // M value output
+        writeM,          // Write to M? 
+        addressM[15],    // Address in data memory (of M)
+        pc[15];          // address of next instruction
+
+    PARTS:
+	
+    // --- 1. DECODER ---
+    // Is it an A-instruction or a C-instruction?
+    Not(in=instruction[15], out=isA);
+    Not(in=isA, out=isC);
+    
+    // Destination bits for C-instruction
+    And(a=isC, b=instruction[5], out=destA);    // A-reg
+    And(a=isC, b=instruction[4], out=destD);    // D-reg
+    And(a=isC, b=instruction[3], out=writeM);   // RAM (M)
+
+    // --- 2. A-REGISTER ---
+    // Mux selects between ALU output (if destA) and the instruction (if isA)
+    Mux16(a=aluOut, b=instruction, sel=isA, out=ain);
+    
+    // Load A if it's an A-instruction OR if C-instruction says to store in A
+    Or(a=isA, b=destA, out=loadA);
+    ARegister(in=ain, load=loadA, out=aout, out[0..14]=addressM);
+
+    // --- 3. D-REGISTER ---
+    // D only loads if it's a C-instruction and the D-destination bit is set
+    DRegister(in=aluOut, load=destD, out=dout);
+
+    // --- 4. ALU ---
+    // Select input: A-register or Memory (inM)? (The 'a' bit is instruction[12])
+    Mux16(a=aout, b=inM, sel=instruction[12], out=AMout);
+
+    ALU(x=dout, y=AMout, 
+        zx=instruction[11], nx=instruction[10], 
+        zy=instruction[9], ny=instruction[8], 
+        f=instruction[7], no=instruction[6], 
+        out=aluOut, out=outM, zr=zr, ng=ng);
+
+    // --- 5. JUMP LOGIC ---
+    // Determine if we should jump based on ALU flags (zr, ng) and jump bits
+    // instruction[0] = JGT, [1] = JEQ, [2] = JLT
+    
+    Not(in=ng, out=notNg);
+    Not(in=zr, out=notZr);
+    And(a=notNg, b=notZr, out=isPos);      // Positive and non-zero
+    
+    And(a=instruction[0], b=isPos, out=jgt); // Jump if > 0
+    And(a=instruction[1], b=zr, out=jeq);    // Jump if == 0
+    And(a=instruction[2], b=ng, out=jlt);    // Jump if < 0
+    
+    Or(a=jgt, b=jeq, out=jge);
+    Or(a=jge, b=jlt, out=jumpCheck);         // Is any jump condition met?
+    
+    // Only jump if it is a C-instruction!
+    And(a=isC, b=jumpCheck, out=doJump);
+
+    // --- 6. PROGRAM COUNTER ---
+    // If doJump is 1, PC loads A. Otherwise, PC increments.
+    // If reset is 1, PC goes to 0.
+    PC(in=aout, load=doJump, inc=true, reset=reset, out[0..14]=pc);
+}
