@@ -1,6 +1,10 @@
 # Nand2Tetris specific
 *.out
 *.cmp
+SupaTinendo VM/*.vm
+SupaTinendo VM/*.asm
+SupaTinendo Assembler/*.asm
+SupaTinendo Assembler/*.hack
 
 # C Compiler outputs
 *.exe
