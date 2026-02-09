@@ -7,9 +7,16 @@ SupaTinendo Assembler/*.asm
 SupaTinendo Assembler/*.hack
 
 # C Compiler outputs
+VMTranslator
+HackAssembler
+SupaTinendo
 *.exe
 *.o
 *.obj
+
+# Editor junk
+.zed/
+.vscode/
 
 # System junk
 Thumbs.db
