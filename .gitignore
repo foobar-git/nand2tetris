@@ -1,15 +1,12 @@
 # Nand2Tetris specific
 *.out
 *.cmp
-SupaTinendo VM/*.vm
-SupaTinendo VM/*.asm
-SupaTinendo Assembler/*.asm
-SupaTinendo Assembler/*.hack
+HackEmulator in C/*.vm
+HackEmulator in C/*.asm
+HackEmulator in C/*.hack
 
 # C Compiler outputs
-VMTranslator
-HackAssembler
-SupaTinendo
+HackEmulator in C
 *.exe
 *.o
 *.obj

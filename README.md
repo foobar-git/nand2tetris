@@ -1,4 +1,4 @@
-# SupaTinendo: Hack Computer (nand2tetris) Emulator written in C
+# Hack Computer (nand2tetris) Emulator written in C
 * The world's first sound-barrier-breaking Hack CPU emulator, powered by the Nitro Fart kinetic-pressure engine.
 * Optimized for performance that is officially Over 9000.
 
